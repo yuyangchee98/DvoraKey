@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DvoraKey</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><rect x='2' y='4' width='20' height='16' rx='2' stroke='currentColor' stroke-width='2'/><path d='M6 8h2m2 0h2m2 0h2m2 0h2M8 12h2m2 0h2m2 0h2M7 16h2m2 0h2m2 0h2' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg>" type="image/svg+xml">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --text-color: #2d3748;
+            --border-color: #cbd5e0;
+            --tile-color: #ffffff;
+            --correct-color: #48bb78;
+            --present-color: #ecc94b;
+            --absent-color: #a0aec0;
+            --primary-color: #4299e1;
+            --secondary-color: #ed8936;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .game-container {
+            background-color: var(--tile-color);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        h1 svg {
+            margin-right: 0.5rem;
+        }
+        #prompt {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 2rem;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        #guess-input {
+            width: calc(100% - 1rem);
+            padding: 0.75rem 0.5rem;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-family: 'Roboto Mono', monospace;
+        }
+        #submit-guess {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.2rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, transform 0.1s;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+        }
+        #submit-guess:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+        #submit-guess:active {
+            transform: translateY(0);
+        }
+        #result, #attempts {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        #previous-attempts {
+            margin-top: 1.5rem;
+        }
+        .attempt {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+        .letter {
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--border-color);
+            margin: 0 0.25rem;
+            font-weight: bold;
+            font-size: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Roboto Mono', monospace;
+            transition: all 0.3s ease;
+        }
+        .correct {
+            background-color: var(--correct-color);
+            border-color: var(--correct-color);
+            color: white;
+        }
+        .present {
+            background-color: var(--present-color);
+            border-color: var(--present-color);
+            color: var(--text-color);
+        }
+        .absent {
+            background-color: var(--absent-color);
+            border-color: var(--absent-color);
+            color: white;
+        }
+        #share-button {
+            display: none;
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.2rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            transition: background-color 0.3s, transform 0.1s;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+        }
+        #share-button:hover {
+            background-color: #dd6b20;
+            transform: translateY(-2px);
+        }
+        #share-button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M6 8h2m2 0h2m2 0h2m2 0h2M8 12h2m2 0h2m2 0h2M7 16h2m2 0h2m2 0h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            DvoraKey
+        </h1>
+        <div id="prompt"></div>
+        <input type="text" id="guess-input" placeholder="Enter your guess" maxlength="4">
+        <button id="submit-guess">Submit Guess</button>
+        <div id="result"></div>
+        <div id="attempts"></div>
+        <div id="previous-attempts"></div>
+        <button id="share-button">Share Result</button>
+    </div>
+
+    <script>
+        const dvorakToQwerty = {
+            "'": "q", ",": "w", ".": "e", "p": "r", "y": "t", "f": "y", "g": "u", "c": "i", "r": "o", "l": "p",
+            "a": "a", "o": "s", "e": "d", "u": "f", "i": "g", "d": "h", "h": "j", "t": "k", "n": "l", "s": ";",
+            ";": "z", "q": "x", "j": "c", "k": "v", "x": "b", "b": "n", "m": "m", "w": ",", "v": ".", "z": "/"
+        };
+
+        const words = [
+            'ABLE', 'ALSO', 'AREA', 'BACK', 'BEST', 'BETTER', 'BODY', 'BOOK', 'BOTH', 'CALL', 'CAME', 'CASE', 'CITY', 'COME', 'COULD', 'DAYS', 'DEAL', 'DONE', 'DOWN', 'EACH', 'EVEN', 'EYES', 'FACE', 'FACT', 'FEEL', 'FIND', 'FIRST', 'FOUR', 'FROM', 'FULL', 'GAVE', 'GIVE', 'GOOD', 'HAND', 'HAVE', 'HEAD', 'HELP', 'HERE', 'HIGH', 'HOME', 'HOPE', 'HOUR', 'HOUSE', 'IDEA', 'INTO', 'JUST', 'KEEP', 'KIND', 'KNOW', 'LAST', 'LATE', 'LEFT', 'LESS', 'LIFE', 'LIKE', 'LINE', 'LITTLE', 'LONG', 'LOOK', 'MADE', 'MAKE', 'MANY', 'MEAN', 'MIND', 'MORE', 'MOST', 'MOVE', 'MUCH', 'MUST', 'NAME', 'NEED', 'NEXT', 'NINE', 'ONCE', 'ONLY', 'OPEN', 'OVER', 'PART', 'PLACE', 'PLAN', 'PLAY', 'REAL', 'ROOM', 'SAID', 'SAME', 'SEEM', 'SEND', 'SHOW', 'SIDE', 'SOME', 'TAKE', 'TELL', 'THAN', 'THAT', 'THEM', 'THEN', 'THEY', 'THING', 'THIS', 'TIME', 'TRUE', 'TURN', 'USED', 'VERY', 'WANT', 'WELL', 'WENT', 'WERE', 'WHAT', 'WHEN', 'WILL', 'WITH', 'WORD', 'WORK', 'YEAR', 'YOUR',
+            'ACID', 'AGED', 'ALSO', 'AREA', 'ARMY', 'AWAY', 'BABY', 'BACK', 'BALL', 'BAND', 'BANK', 'BASE', 'BATH', 'BEAR', 'BEAT', 'BEEN', 'BEER', 'BELL', 'BELT', 'BEST', 'BILL', 'BIRD', 'BLOW', 'BLUE', 'BOAT', 'BODY', 'BOMB', 'BOND', 'BONE', 'BOOK', 'BOOM', 'BORN', 'BOTH', 'BOWL', 'BULK', 'BURN', 'BUSH', 'BUSY', 'CALL', 'CALM', 'CAME', 'CAMP', 'CARD', 'CARE', 'CASE', 'CASH', 'CAST', 'CELL', 'CHAT', 'CHIP', 'CITY', 'CLUB', 'COAL', 'COAT', 'CODE', 'COLD', 'COME', 'COOK', 'COOL', 'COPE', 'COPY', 'CORE', 'COST', 'CREW', 'CROP', 'DARK', 'DATA', 'DATE', 'DAWN', 'DAYS', 'DEAD', 'DEAL', 'DEAN', 'DEAR', 'DEBT', 'DEEP', 'DENY', 'DESK', 'DIAL', 'DICK', 'DIET', 'DISC', 'DISK', 'DOES', 'DONE', 'DOOR', 'DOSE', 'DOWN', 'DRAW', 'DREW', 'DROP', 'DRUG', 'DUAL', 'DUKE', 'DUST', 'DUTY', 'EACH', 'EARN', 'EASE', 'EAST', 'EASY', 'EDGE', 'ELSE', 'EVEN', 'EVER', 'EVIL', 'EXIT', 'FACE', 'FACT', 'FAIL', 'FAIR', 'FALL', 'FARM', 'FAST', 'FATE', 'FEAR', 'FEED', 
+            'FEEL', 'FEET', 'FELL', 'FELT', 'FILE', 'FILL', 'FILM', 'FIND', 'FINE', 'FIRE', 'FIRM', 'FISH', 'FIVE', 'FLAT', 'FLOW', 'FOOD', 'FOOT', 'FORD', 'FORM', 'FORT', 'FOUR', 'FREE', 'FROM', 'FUEL', 'FULL', 'FUND', 'GAIN', 'GAME', 'GATE', 'GAVE', 'GEAR', 'GENE', 'GIFT', 'GIRL', 'GIVE', 'GLAD', 'GOAL', 'GOES', 'GOLD', 'GOLF', 'GONE', 'GOOD', 'GRAY', 'GREW', 'GREY', 'GROW', 'GULF', 'HAIR', 'HALF', 'HALL', 'HAND', 'HANG', 'HARD', 'HARM', 'HATE', 'HAVE', 'HEAD', 'HEAR', 'HEAT', 'HELD', 'HELL', 'HELP', 'HERE', 'HERO', 'HIGH', 'HILL', 'HIRE', 'HOLD', 'HOLE', 'HOLY', 'HOME', 'HOPE', 'HOST', 'HOUR', 'HUGE', 'HUNG', 'HUNT', 'HURT', 'IDEA', 'INCH', 'INTO', 'IRON', 'ITEM', 'JACK', 'JANE', 'JEAN', 'JOHN', 'JOIN', 'JUMP', 'JURY', 'JUST', 'KEEN', 'KEEP', 'KENT', 'KEPT', 'KICK', 'KILL', 'KIND', 'KING', 'KNEE', 'KNEW', 'KNOW', 'LACK', 'LADY', 'LAID', 'LAKE', 'LAND', 'LANE', 'LAST', 'LATE', 'LEAD', 'LEFT', 'LESS', 'LIFE', 'LIFT', 'LIKE', 'LINE',
+            'LINK', 'LIST', 'LIVE', 'LOAD', 'LOAN', 'LOCK', 'LOGO', 'LONG', 'LOOK', 'LORD', 'LOSE', 'LOSS', 'LOST', 'LOVE', 'LUCK', 'MADE', 'MAIL', 'MAIN', 'MAKE', 'MALE', 'MANY', 'MARK', 'MASS', 'MATT', 'MEAL', 'MEAN', 'MEAT', 'MEET', 'MENU', 'MERE', 'MIKE', 'MILE', 'MILK', 'MILL', 'MIND', 'MINE', 'MISS', 'MODE', 'MOOD', 'MOON', 'MORE', 'MOST', 'MOVE', 'MUCH',
+        ];
+
+        /* This code defines a function getDailyWord() that generates a daily word based on the current date. It calculates a seed using the year, month, and date, then uses that seed to create a random number generator (rng) and returns a word from the words array based on the random number generated. */
+        function getDailyWord() {
+            // Use UTC date to ensure consistency across time zones
+            const today = new Date();
+            const utcDate = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+            
+            // Create a seed based on the number of days since a fixed date
+            const startDate = Date.UTC(2023, 0, 1);  // January 1, 2023 as the start date
+            const daysSinceStart = Math.floor((utcDate - startDate) / (1000 * 60 * 60 * 24));
+            
+            // Use the number of days as the seed
+            const rng = new Math.seedrandom(daysSinceStart);
+            
+            // Select and return the word
+            return words[Math.floor(rng() * words.length)];
+        }
+
+        function convertToDvorak(word) {
+            return word.split('').map(char => {
+                for (let [dvorak, qwerty] of Object.entries(dvorakToQwerty)) {
+                    if (qwerty.toUpperCase() === char) {
+                        return dvorak.toUpperCase();
+                    }
+                }
+                return char;
+            }).join('');
+        }
+
+        const dailyWord = getDailyWord();
+        const dvorakPrompt = convertToDvorak(dailyWord);
+        let attempts = [];
+        const maxAttempts = 5;
+
+        document.getElementById('prompt').textContent = dvorakPrompt;
+
+        function updateAttemptsDisplay() {
+            document.getElementById('attempts').textContent = `Attempts: ${attempts.length}/${maxAttempts}`;
+        }
+
+        function displayPreviousAttempts() {
+            const container = document.getElementById('previous-attempts');
+            container.innerHTML = '';
+            attempts.forEach(attempt => {
+                const attemptDiv = document.createElement('div');
+                attemptDiv.className = 'attempt';
+                attempt.split('').forEach((letter, index) => {
+                    const letterDiv = document.createElement('div');
+                    letterDiv.className = 'letter';
+                    letterDiv.textContent = letter;
+                    if (letter === dailyWord[index]) {
+                        letterDiv.classList.add('correct');
+                    } else if (dailyWord.includes(letter)) {
+                        letterDiv.classList.add('present');
+                    } else {
+                        letterDiv.classList.add('absent');
+                    }
+                    attemptDiv.appendChild(letterDiv);
+                });
+                container.appendChild(attemptDiv);
+            });
+        }
+
+        function checkGameStatus() {
+            const today = new Date().toDateString();
+            const storedDate = localStorage.getItem('dvoraKeyLastPlayed');
+            if (storedDate === today) {
+                const storedAttempts = JSON.parse(localStorage.getItem('dvoraKeyAttempts'));
+                attempts = storedAttempts || [];
+                displayPreviousAttempts();
+                updateAttemptsDisplay();
+                if (attempts.length >= maxAttempts || attempts[attempts.length - 1] === dailyWord) {
+                    endGame(attempts[attempts.length - 1] === dailyWord);
+                }
+            } else {
+                localStorage.setItem('dvoraKeyLastPlayed', today);
+                localStorage.setItem('dvoraKeyAttempts', JSON.stringify([]));
+            }
+        }
+
+        function endGame(won) {
+            document.getElementById('guess-input').disabled = true;
+            document.getElementById('submit-guess').disabled = true;
+            document.getElementById('result').textContent = won ? 'Congratulations! You guessed it right!' : `Sorry, you've run out of attempts. The correct word was ${dailyWord}.`;
+            document.getElementById('share-button').style.display = 'block';
+        }
+
+        function shareResult() {
+            let resultText = `DvoraKey ${attempts.length}/${maxAttempts}\n\n`;
+            attempts.forEach(attempt => {
+                attempt.split('').forEach((letter, index) => {
+                    if (letter === dailyWord[index]) {
+                        resultText += '🟩';
+                    } else if (dailyWord.includes(letter)) {
+                        resultText += '🟨';
+                    } else {
+                        resultText += '⬜';
+                    }
+                });
+                resultText += '\n';
+            });
+            navigator.clipboard.writeText(resultText).then(() => {
+                alert('Result copied to clipboard!');
+            });
+        }
+
+        document.getElementById('submit-guess').addEventListener('click', function() {
+            const guess = document.getElementById('guess-input').value.toUpperCase();
+            if (guess.length !== 4) {
+                alert('Please enter a 4-letter word.');
+                return;
+            }
+            attempts.push(guess);
+            localStorage.setItem('dvoraKeyAttempts', JSON.stringify(attempts));
+            displayPreviousAttempts();
+            updateAttemptsDisplay();
+
+            if (guess === dailyWord || attempts.length >= maxAttempts) {
+                endGame(guess === dailyWord);
+            }
+
+            document.getElementById('guess-input').value = '';
+        });
+
+        document.getElementById('share-button').addEventListener('click', shareResult);
+
+        checkGameStatus();
+        updateAttemptsDisplay();
+    </script>
+</body>
+</html>
